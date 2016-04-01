@@ -11,7 +11,11 @@
 // Run the program in parallel.
 package main
 
-import "runtime"
+import (
+	"fmt"
+	"runtime"
+	"sync"
+)
 
 // Add imports.
 
@@ -24,22 +28,33 @@ func init() {
 // main is the entry point for the application.
 func main() {
 	// Declare a wait group and set the count to two.
-
+	var wg sync.WaitGroup
+	wg.Add(2)
 	// Declare an anonymous function and create a goroutine.
-	{
+	go func() {
 		// Declare a loop that counts down from 100 to 0 and
 		// display each value.
+		for count := 100; count >= 0; count-- {
+			fmt.Printf("[A:%d]\n", count)
+		}
 
 		// Decrements the count of the wait group.
-	}
+		wg.Done()
+	}()
 
 	// Declare an anonymous function and create a goroutine.
-	{
+	go func() {
 		// Declare a loop that counts up from 0 to 100 and
 		// display each value.
+		for count := 0; count < 100; count++ {
+			fmt.Printf("[B:%d]\n", count)
+		}
 
 		// Decrements the count of the wait group.
-	}
+		wg.Done()
+	}()
 
 	// Wait for the goroutines to finish.
+	wg.Wait()
+	fmt.Print("Done")
 }
