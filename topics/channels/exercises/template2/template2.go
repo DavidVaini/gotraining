@@ -11,32 +11,52 @@
 // allow the goroutine to terminate.
 package main
 
-// Add Imports.
+import (
+	"fmt"
+	"sync"
+)
 
-// Declare constants for number of goroutines and capacity.
+const (
+	goroutines = 20
+	capacity   = 4
+)
 
-// Declare a wait group variable.
+// wg is used to wait for the program to finish.
+var wg sync.WaitGroup
 
-// Declare a buffered channel to manage strings
-// with a capacity.
+// resources is a buffered channel to manage strings.
 var resources = make(chan string, capacity)
 
 // main is the entry point for the application.
 func main() {
-	// Launch the goroutines to handle the work.
-	// Handle the Done when they are finished.
+	// Launch goroutines to handle the work.
+	wg.Add(goroutines)
+	for i := 1; i <= goroutines; i++ {
+		go func(i int) {
+			worker(i)
+			wg.Done()
+		}(i)
+	}
 
-	// Add the strings to the buffered channel.
+	// Add the strings.
+	for rune := 'A'; rune < 'A'+capacity; rune++ {
+		resources <- string(rune)
+	}
 
 	// Wait for all the work to get done.
+	wg.Wait()
 }
 
 // worker is launched as a goroutine to process work from
 // the buffered channel.
-func worker( /* parameters */ ) {
+func worker(worker int) {
 	// Receive a string from the channel.
+	value := <-resources
 
 	// Display the value.
+	fmt.Println("Worker:", worker)
+	fmt.Println(", Value:", value)
 
 	// Place the string back.
+	resources <- value
 }

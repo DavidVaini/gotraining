@@ -9,35 +9,62 @@
 // the program cleanly.
 package main
 
-// Add imports.
+import (
+	"fmt"
+	"sync"
+)
 
-// Declare a wait group variable.
+// wg is used to wait for the program to finish.
+var wg sync.WaitGroup
 
 // main is the entry point for the application.
 func main() {
 	// Create an unbuffered channel.
+	ch := make(chan int)
 
-	// Set the waitgroup, one for each goroutine.
+	// Add a count of two, one for each goroutine.
+	wg.Add(2)
 
-	// Launch the goroutine and handle Done.
+	// Launch two goroutines.
+	go func() {
+		goroutine("One", ch)
+		wg.Done()
+	}()
 
-	// Launch the goroutine and handle Done.
+	go func() {
+		goroutine("Two", ch)
+		wg.Done()
+	}()
 
-	// Send a value to start the counting.
+	// Start the sharing.
+	ch <- 1
 
 	// Wait for the program to finish.
+	wg.Wait()
 }
 
 // goroutine simulates sharing a value.
-func goroutine( /* parameters */ ) {
+func goroutine(name string, ch chan int) {
 	for {
-		// Wait for the value to be sent.
-		// If the channel was closed, shutdown.
+		// Wait for the ball to be hit back to us.
+		value, ok := <-ch
+		if !ok {
+			// If the channel was closed, shutdown.
+			fmt.Printf("Goroutine %s Down\n", name)
+			return
+		}
 
 		// Display the value.
+		fmt.Printf("Goroutine %s Inc %d\n", name, value)
 
 		// Terminate when the value is 10.
+		if value == 10 {
+			close(ch)
+			fmt.Printf("Goroutine %s Down\n", name)
+			return
+		}
 
 		// Share the value.
+		ch <- (value + 1)
 	}
 }
